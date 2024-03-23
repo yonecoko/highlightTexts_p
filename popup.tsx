@@ -1,5 +1,6 @@
 import "./style.css"
 
+import { serialize } from "v8"
 import { useEffect, useState } from "react"
 
 import { Storage } from "@plasmohq/storage"
@@ -12,6 +13,8 @@ function SearchTexts() {
   const [errorMessage, setErrorMessage] =
     useState("テキストを入力し、色を選んでください")
   const [length, setLength] = useState(0)
+  const [isReset, setIsReset] = useState(false)
+  // const [isSearch, setIsSearch] = useState(false)
 
   const [terms, setTerms] = useState([])
   const [colorClassName, setColorClassName] = useState([])
@@ -20,8 +23,7 @@ function SearchTexts() {
   const colorNameArray = ["カラー", "purple", "yellow", "green", "blue", "red"]
   const uniq = (array) => [...new Set(array)]
 
-  console.log(terms)
-  console.log(colorClassName)
+  // console.log(isSearch)
 
   useEffect(() => {
     storage.get<string[]>("terms").then((res) => setTerms(res ?? []))
@@ -29,8 +31,9 @@ function SearchTexts() {
       .get<string[]>("colorClassName")
       .then((res) => setColorClassName(res ?? []))
     storage.get<number>("length").then((res) => setLength(res))
+    storage.get<boolean>("isReset").then((res) => setIsReset(res))
+    // storage.get<boolean>("isSearch").then((res) => setIsSearch(res))
     setColors("カラー")
-    console.log(length)
   }, [])
 
   useEffect(() => {
@@ -38,13 +41,19 @@ function SearchTexts() {
     storage.set("colorClassName", colorClassName)
     storage.set("colors", colors)
     storage.set("length", length)
-  }, [terms, colorClassName, colors, length])
+    storage.set("isReset", isReset)
+    // storage.set("isSearch", isSearch)
+  }, [terms, colorClassName, colors, length, isReset])
+
+  // co÷nsole.log(isReset)
 
   const deleteValue = (index) => {
     setTerms(terms.filter((_, i) => i != index))
     setColorClassName(colorClassName.filter((_, i) => i != index))
     setLength(length - 1)
+    // setIsSearch(false)
   }
+
   const colorSelect = () => {
     return (
       <>
@@ -103,9 +112,14 @@ function SearchTexts() {
   const reSearchBtn = () => {
     if (length >= 1) {
       return (
-        <button className="resetBtn" onClick={resetBtn}>
-          リセット
-        </button>
+        <>
+          <button className="resetBtn" onClick={resetBtn}>
+            リセット
+          </button>
+          {/* <button className="resetBtn" onClick={() => setIsSearch(true)}>
+            検索
+          </button> */}
+        </>
       )
     }
   }
@@ -114,6 +128,8 @@ function SearchTexts() {
     setLength(0)
     setColorClassName([])
     setTerms([])
+    setIsReset(true)
+    // setIsSearch(false)
   }
 
   const handleSubmit = (e) => {
@@ -124,7 +140,6 @@ function SearchTexts() {
     setIsError(false)
     setIsErrorOfColor(false)
     setLength(length + 1)
-    console.log(length)
     {
       colorNameArray.map((color) => {
         const selectColor = `highlight-${color}`

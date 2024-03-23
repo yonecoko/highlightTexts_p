@@ -12,53 +12,40 @@ export const config: PlasmoCSConfig = {
 
 const highlightTexts = () => {
   const [terms, setTerms] = useState<string[]>([])
-  // const [isPushBtn, setIsPushBtn] = useState(false)
   const [colorClassName, setColorClassName] = useState<string[]>([])
-  // const [isMatch, setIsMatch] = useState<boolean>(false)
-  // const [length, setLength] = useState(0)
-
-  // const btn = Array.from(document.getElementsByClassName("searchBtn"))
+  const [isReset, setIsReset] = useState(false)
   const divArray = Array.from(document.getElementsByTagName("div"))
-
   const storage = new Storage()
 
-  // URLが条件に一致しているかチェック
   useEffect(() => {
-    highlight()
+    highlightText()
   }, [terms])
-
-  // console.log(terms)
 
   // コンポーネントマウント時にリストを取得
   useEffect(() => {
     storage.get<string[]>("terms").then((res) => setTerms(res ?? []))
+    storage.watch({ terms: (c) => setTerms(c.newValue) })
     storage
       .get<string[]>("colorClassName")
       .then((res) => setColorClassName(res ?? []))
-    // storage.get<boolean>("isPushBtn").then((res) => setIsPushBtn(res))
-    storage.watch({ terms: (c) => setTerms(c.newValue) })
-    // storage.watch({ length: (c) => setLength(c.newValue) })
+    storage.watch({ colorClassName: (c) => setColorClassName(c.newValue) })
+    storage.get<boolean>("isReset").then((res) => setIsReset(res))
+    storage.watch({ isReset: (c) => setIsReset(c.newValue) })
   }, [])
 
-  const highlight = () => {
-    for (const term of terms) {
-      for (const div of divArray) {
-        const text = div.innerHTML
-        for (const style of colorClassName) {
-          if (text.includes(term)) {
-            const highlightStyle = `<span class=${style}>${term}</span>`
-            let highlight = text.replaceAll(term, highlightStyle)
-            div.innerHTML = highlight
-            // console.log(div.innerHTML)
-            // // innerHTMLで上書きすると、タグ込みで上書きできそう。これで実装できないか考える
-            // return highlightStyle
-          }
-        }
+  const highlightText = () => {
+    divArray.map((div) => {
+      const text = div.innerHTML
+      const highlightStyle = `<span class=${colorClassName[terms.length - 1]}>${terms[terms.length - 1]}</span>`
+      const highlight = text.replaceAll(terms[terms.length - 1], highlightStyle)
+      div.innerHTML = highlight
+
+      if (isReset) {
       }
-    }
+    })
   }
 
-  return <p className={colorClassName[0]}>{terms[0]}</p>
+  return
 }
 
 export default highlightTexts
